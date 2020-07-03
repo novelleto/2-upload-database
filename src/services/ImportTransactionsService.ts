@@ -32,14 +32,14 @@ class ImportTransactionsService {
 
     parseCSV.on('data', async line => {
       const [title, type, value, category] = line.map((cell: string) =>
-      cell.trim(),
+        cell.trim(),
       );
 
       if (!title || !type || !value) return;
 
       categories.push(category);
 
-      transactions.push({ title, type, value, category })
+      transactions.push({ title, type, value, category });
     });
 
     await new Promise(resolve => parseCSV.on('end', resolve));
@@ -51,12 +51,12 @@ class ImportTransactionsService {
     });
 
     const existentsCategoriesTitles = existentsCategories.map(
-      (category: Category) => category.title
+      (category: Category) => category.title,
     );
 
     const addCategoryTitles = categories
-    .filter(category => !existentsCategoriesTitles.includes(category))
-    .filter((value, index, self) => self.indexOf(value) === index);
+      .filter(category => !existentsCategoriesTitles.includes(category))
+      .filter((value, index, self) => self.indexOf(value) === index);
 
     const newCategories = categoriesRepository.create(
       addCategoryTitles.map(title => ({
@@ -67,17 +67,16 @@ class ImportTransactionsService {
     await categoriesRepository.save(newCategories);
 
     const finalCategories = [...newCategories, ...existentsCategories];
-    
+
     const createdTransactions = transactionRepository.create(
-      transactions.map(transaction => (
-        {
-          title: transaction.title,
-          type: transaction.type,
-          value: transaction.value,
-          category: finalCategories.find(
-            category => category.title === transaction.category,
-          ),
-        })),
+      transactions.map(transaction => ({
+        title: transaction.title,
+        type: transaction.type,
+        value: transaction.value,
+        category: finalCategories.find(
+          category => category.title === transaction.category,
+        ),
+      })),
     );
 
     await transactionRepository.save(createdTransactions);
@@ -85,9 +84,7 @@ class ImportTransactionsService {
     await fs.promises.unlink(filePath);
 
     return createdTransactions;
-
   }
-
 }
 
 export default ImportTransactionsService;
